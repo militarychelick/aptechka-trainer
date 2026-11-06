@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#202a35">
+  <title>ОБЗР — Автомобильная аптечка</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <h1>АВТОМОБИЛЬНАЯ АПТЕЧКА</h1>
+      <div class="top-actions">
+        <button id="modeButton" class="btn mode">РЕЖИМ ПОДСКАЗОК</button>
+        <button id="checkButton" class="btn check">ПРОВЕРИТЬ</button>
+        <button id="resetButton" class="btn reset">СБРОСИТЬ ВСЁ</button>
+      </div>
+    </header>
+
+    <div id="status" class="status" role="status" aria-live="polite">
+      Перетаскивай предметы в аптечку или нажимай на них
+    </div>
+
+    <section class="workspace">
+      <section class="panel inventory-panel">
+        <h2>ПРЕДМЕТЫ ДЛЯ ВЫБОРА</h2>
+        <input id="search" class="search" type="search" placeholder="Поиск предметов..." autocomplete="off">
+        <div id="inventory" class="inventory" aria-label="Список предметов"></div>
+      </section>
+
+      <section class="panel bag-panel">
+        <h2>АВТОМОБИЛЬНАЯ АПТЕЧКА</h2>
+        <div id="bag" class="bag">
+          <div class="medical-cross" aria-hidden="true">✚</div>
+          <div id="counter" class="counter">Предметов: 0</div>
+          <div id="placed" class="placed" aria-label="Содержимое аптечки"></div>
+          <div id="dropHint" class="drop-hint">Перетащи предметы сюда</div>
+        </div>
+      </section>
+    </section>
+
+    <footer class="legend">
+      <span><i class="dot green"></i> Зелёный — правильное количество</span>
+      <span><i class="dot yellow"></i> Жёлтый — неправильное количество</span>
+      <span><i class="dot red"></i> Красный — неподходящий предмет</span>
+    </footer>
+  </main>
+
+  <dialog id="resultsDialog" class="results-dialog">
+    <div class="dialog-header">
+      <h2 id="resultTitle">РЕЗУЛЬТАТ</h2>
+      <button id="closeResults" class="close-button" aria-label="Закрыть">×</button>
+    </div>
+    <div id="resultBody" class="result-body"></div>
+    <div class="dialog-footer">
+      <button id="closeResultsBottom" class="btn check">ЗАКРЫТЬ</button>
+    </div>
+  </dialog>
+
+  <dialog id="confirmDialog" class="confirm-dialog">
+    <h2>Сброс</h2>
+    <p>Полностью очистить аптечку и перемешать список предметов?</p>
+    <div class="confirm-actions">
+      <button id="cancelReset" class="btn secondary">Отмена</button>
+      <button id="confirmReset" class="btn reset">Сбросить</button>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
