@@ -1,155 +1,97 @@
-// Учебный тренажёр автомобильной аптечки.
-// Норматив: муниципальный этап ВсОШ по ОБЗР, 9 класс, 2026–2027 уч. г.
-// Время выполнения: 2 минуты 30 секунд. Максимум: 20 баллов.
+from pathlib import Path
+
+js = r'''// Тренажёр сборки автомобильной аптечки — ОБЗР, 9 класс, 2026–2027.
+// Слева — всё оборудование этапа с исходным количеством.
+// При переносе одной единицы остаток слева уменьшается на 1.
+// Кнопка «−» справа возвращает одну единицу в список слева.
 
 const REQUIRED = {
-  "Медицинская маска одноразовая": 2,
-  "Медицинские перчатки (пара)": 2,
-  "Устройство Рот-Устройство-Рот": 2,
-  "Кровоостанавливающий жгут": 1,
-  "Бинт 5 м × 10 см": 3,
-  "Бинт 7 м × 14 см": 3,
-  "Стерильные салфетки 16 × 13 см №10": 2,
-  "Рулонный лейкопластырь 2 × 500 см": 1,
-  "Изотермическое покрывало 160 × 210 см": 1,
+  "Маска медицинская нестерильная одноразовая": 2,
+  "Перчатки медицинские": 2,
+  "Устройство для искусственного дыхания «Рот-Устройство-Рот»": 2,
+  "Жгут кровоостанавливающий": 1,
+  "Бинт марлевый 5 м × 10 см": 3,
+  "Бинт марлевый 7 м × 14 см": 3,
+  "Салфетки медицинские стерильные 16 × 13 см №10": 2,
+  "Лейкопластырь фиксирующий рулонный 2 × 500 см": 1,
+  "Покрывало спасательное изотермическое 160 × 210 см": 1,
   "Ножницы для разрезания перевязочного материала и ткани": 1,
-  "Блокнот формата не менее А7": 1,
-  "Маркер чёрный/синий или карандаш": 1,
-  "Пластиковый кейс или сумка": 1
+  "Блокнот формата не менее А7": 1
 };
 
-const ALIASES = {
-  "Медицинская маска": "Медицинская маска одноразовая",
-  "Маска медицинская нестерильная одноразовая": "Медицинская маска одноразовая",
-  "Медицинская маска нестерильная одноразовая": "Медицинская маска одноразовая",
-  "Медицинские перчатки": "Медицинские перчатки (пара)",
-  "Блокнот А7": "Блокнот формата не менее А7",
-  "Блокнот А6": "Блокнот формата не менее А7",
-  "Маркер чёрный": "Маркер чёрный/синий или карандаш",
-  "Маркер черный": "Маркер чёрный/синий или карандаш",
-  "Маркер синий": "Маркер чёрный/синий или карандаш",
-  "Карандаш": "Маркер чёрный/синий или карандаш",
-  "Футляр": "Пластиковый кейс или сумка",
-  "Пластиковый кейс": "Пластиковый кейс или сумка",
-  "Сумка": "Пластиковый кейс или сумка"
-};
-
-const ITEMS = [
-  ["Медицинская маска нестерильная одноразовая", "😷"],
-  ["Медицинские перчатки (пара)", "🧤"],
-  ["Устройство Рот-Устройство-Рот", "🫁"],
-  ["Кровоостанавливающий жгут", "🩸"],
-  ["Бинт 5 м × 10 см", "🩹"],
-  ["Бинт 7 м × 14 см", "🩹"],
-  ["Стерильные салфетки 16 × 13 см №10", "🧻"],
-  ["Рулонный лейкопластырь 2 × 500 см", "🩹"],
-  ["Изотермическое покрывало 160 × 210 см", "🌡"],
-  ["Ножницы для разрезания перевязочного материала и ткани", "✂"],
-  ["Блокнот А7", "📓"],
-  ["Блокнот А6", "📓"],
-  ["Маркер чёрный", "🖊"],
-  ["Маркер синий", "🖊"],
-  ["Карандаш", "✏️"],
-  ["Пластиковый кейс", "🧰"],
-  ["Сумка", "👜"]
+// Маркер чёрный, синий или карандаш — альтернативы одного пункта норматива.
+const MARKER_ALTERNATIVES = [
+  "Маркер чёрный",
+  "Маркер синий",
+  "Карандаш"
 ];
 
-const WRONG_ITEMS = [
-  ["Инструкция по первой помощи", "📖"],
+const EQUIPMENT = [
+  { name: "Жгут кровоостанавливающий", qty: 3, icon: "🩸" },
+  { name: "Маска медицинская нестерильная одноразовая", qty: 4, icon: "😷" },
+  { name: "Перчатки медицинские", qty: 4, icon: "🧤" },
+  { name: "Бинт марлевый 5 м × 10 см", qty: 5, icon: "🩹" },
+  { name: "Устройство для искусственного дыхания «Рот-Устройство-Рот»", qty: 2, icon: "🫁" },
+  { name: "Бинт марлевый 7 м × 14 см", qty: 5, icon: "🩹" },
+  { name: "Салфетки спиртовые 135 × 185 мм", qty: 4, icon: "🧻" },
+  { name: "Раствор бриллиантовой зелени 25 мл", qty: 1, icon: "🧴" },
+  { name: "Раствор йода 25 мл", qty: 1, icon: "🧴" },
+  { name: "Салфетки медицинские стерильные 16 × 13 см №10", qty: 3, icon: "🧻" },
+  { name: "Лейкопластырь фиксирующий рулонный 2 × 500 см", qty: 2, icon: "🩹" },
+  { name: "Пластырь бактерицидный 6 × 10 см", qty: 2, icon: "🩹" },
+  { name: "Покрывало спасательное изотермическое 160 × 210 см", qty: 2, icon: "🌡️" },
+  { name: "Ножницы для разрезания перевязочного материала и ткани", qty: 1, icon: "✂️" },
+  { name: "Блокнот формата не менее А7", qty: 1, icon: "📓" },
+  { name: "Маркер чёрный", qty: 1, icon: "🖊️" },
+  { name: "Маркер синий", qty: 1, icon: "🖊️" },
+  { name: "Маркер красный", qty: 1, icon: "🖊️" },
+  { name: "Маркер жёлтый", qty: 1, icon: "🖊️" },
+  { name: "Карандаш", qty: 1, icon: "✏️" },
+  { name: "Ручка", qty: 1, icon: "🖊️" },
+  { name: "Пластиковый кейс или сумка", qty: 1, icon: "🧰", container: true }
+];
+
+// Посторонние предметы для тренировочного выбора. Они не входят в перечень оборудования этапа.
+const DISTRACTORS = [
   ["Медицинская маска многоразовая", "😷"],
   ["Тканевая маска", "😷"],
   ["Респиратор", "😷"],
   ["Повреждённые медицинские перчатки", "🧤"],
   ["Эластичный бинт 2 м × 10 см", "🩹"],
-  ["Бинт 3 м × 5 см", "🩹"],
   ["Бинт 5 м × 5 см", "🩹"],
   ["Бинт 7 м × 10 см", "🩹"],
-  ["Бинт 10 м × 10 см", "🩹"],
   ["Нестерильная марля", "🧻"],
   ["Вата медицинская", "🧻"],
-  ["Спиртовые салфетки", "🧻"],
-  ["Раствор бриллиантовой зелени", "🧴"],
-  ["Раствор йода", "🧴"],
-  ["Бактерицидный пластырь", "🩹"],
+  ["Бактерицидный пластырь другого размера", "🩹"],
   ["Лейкопластырь 2 × 100 см", "🩹"],
-  ["Канцелярские ножницы", "✂"],
-  ["Маникюрные ножницы", "✂"],
-  ["Хирургические ножницы общего назначения", "✂"],
+  ["Канцелярские ножницы", "✂️"],
+  ["Маникюрные ножницы", "✂️"],
   ["Блокнот А8", "📓"],
-  ["Красный маркер", "🖊"],
-  ["Жёлтый маркер", "🖊"],
-  ["Ручка", "🖊"],
-  ["Обычное одеяло", "🌡"],
-  ["Покрывало 100 × 150 см", "🌡"],
-  ["Покрывало 200 × 200 см", "🌡"],
+  ["Маркер красный", "🖊️"],
+  ["Маркер жёлтый", "🖊️"],
+  ["Ручка", "🖊️"],
+  ["Обычное одеяло", "🌡️"],
+  ["Покрывало 100 × 150 см", "🌡️"],
   ["Перекись водорода", "🧴"],
   ["Обезболивающие таблетки", "💊"],
-  ["Антибиотики", "💊"],
-  ["Термометр", "🌡"],
+  ["Термометр", "🌡️"],
   ["Пинцет", "🧷"],
-  ["Медицинский шприц", "💉"],
-  ["Бинт трубчатый", "🩹"],
-  ["Марлевый тампон", "🧻"],
-  ["Медицинский скотч", "🩹"],
-  ["Влажные салфетки", "🧻"],
-  ["Бумажные салфетки", "🧻"]
+  ["Медицинский шприц", "💉"]
 ];
 
-const WRONG_ITEMS_PER_ROUND = 18;
 const TIME_LIMIT_SECONDS = 150;
 const MAX_SCORE = 20;
 
-const REASONS = {
-  "Инструкция по первой помощи": "В таблице минимальной комплектации этого задания не указана.",
-  "Медицинская маска многоразовая": "Требуется маска нестерильная одноразовая.",
-  "Тканевая маска": "Не является одноразовой медицинской маской.",
-  "Респиратор": "Не заменяет предусмотренную медицинскую маску.",
-  "Повреждённые медицинские перчатки": "Повреждённые перчатки непригодны.",
-  "Эластичный бинт 2 м × 10 см": "Не соответствует требуемому марлевому бинту.",
-  "Бинт 3 м × 5 см": "Не соответствует минимальным размерам.",
-  "Бинт 5 м × 5 см": "Ширина меньше требуемых 10 см.",
-  "Бинт 7 м × 10 см": "Не соответствует требуемой ширине 14 см.",
-  "Бинт 10 м × 10 см": "Не соответствует требуемой ширине 14 см.",
-  "Нестерильная марля": "Требуются стерильные медицинские салфетки.",
-  "Вата медицинская": "Не указана в таблице комплектации.",
-  "Спиртовые салфетки": "Не заменяют стерильные медицинские салфетки.",
-  "Раствор бриллиантовой зелени": "Не указан в таблице минимальной комплектации.",
-  "Раствор йода": "Не указан в таблице минимальной комплектации.",
-  "Бактерицидный пластырь": "Требуется рулонный фиксирующий лейкопластырь.",
-  "Лейкопластырь 2 × 100 см": "Не соответствует требуемой длине 500 см.",
-  "Канцелярские ножницы": "Требуются ножницы для перевязочного материала и ткани.",
-  "Маникюрные ножницы": "Не соответствуют назначению из задания.",
-  "Хирургические ножницы общего назначения": "Требуются ножницы для перевязочного материала и ткани.",
-  "Блокнот А8": "Формат меньше минимально допустимого А7.",
-  "Красный маркер": "Разрешён чёрный или синий маркер либо карандаш.",
-  "Жёлтый маркер": "Разрешён чёрный или синий маркер либо карандаш.",
-  "Ручка": "В таблице указаны чёрный/синий маркер или карандаш.",
-  "Обычное одеяло": "Требуется спасательное изотермическое покрывало.",
-  "Покрывало 100 × 150 см": "Меньше минимального размера 160 × 210 см.",
-  "Покрывало 200 × 200 см": "Не соответствует формулировке размера из задания.",
-  "Перекись водорода": "Не указана в таблице минимальной комплектации.",
-  "Обезболивающие таблетки": "Не указаны в таблице минимальной комплектации.",
-  "Антибиотики": "Не указаны в таблице минимальной комплектации.",
-  "Термометр": "Не указан в таблице минимальной комплектации.",
-  "Пинцет": "Не указан в таблице минимальной комплектации.",
-  "Медицинский шприц": "Не указан в таблице минимальной комплектации.",
-  "Бинт трубчатый": "Не соответствует указанному марлевому бинту.",
-  "Марлевый тампон": "Не заменяет стерильные салфетки №10.",
-  "Медицинский скотч": "Не соответствует рулонному лейкопластырю 2 × 500 см.",
-  "Влажные салфетки": "Не указаны в таблице минимальной комплектации.",
-  "Бумажные салфетки": "Не заменяют стерильные медицинские салфетки."
-};
-
 const state = {
-  placed: [],
+  stock: new Map(),
+  selected: [],
   hints: true,
-  review: false,
-  shuffledItems: [],
-  dragName: null,
   timerId: null,
   startedAt: null,
   secondsLeft: TIME_LIMIT_SECONDS,
-  finishedByTime: false
+  finished: false,
+  containerSelected: false,
+  dragName: null
 };
 
 const el = {
@@ -173,12 +115,10 @@ const el = {
   confirmReset: document.getElementById("confirmReset")
 };
 
-// Таймер добавляется скриптом, поэтому менять HTML не требуется.
 const timerDisplay = document.createElement("div");
 timerDisplay.id = "timer";
 timerDisplay.textContent = "Время: 02:30";
 Object.assign(timerDisplay.style, {
-  color: "#ffffff",
   textAlign: "center",
   fontSize: "18px",
   fontWeight: "700",
@@ -187,389 +127,343 @@ Object.assign(timerDisplay.style, {
 });
 el.status.insertAdjacentElement("afterend", timerDisplay);
 
-function canonical(name) {
-  return ALIASES[name] || name;
+function setStatus(message) {
+  el.status.textContent = message;
 }
 
-function counts() {
-  const result = new Map();
-  for (const name of state.placed) {
-    const key = canonical(name);
-    result.set(key, (result.get(key) || 0) + 1);
-  }
-  return result;
+function initStock() {
+  state.stock.clear();
+  state.selected = [];
+  state.containerSelected = false;
+  for (const item of EQUIPMENT) state.stock.set(item.name, item.qty);
 }
 
-function getGroups() {
-  const groups = new Map();
-  for (const name of state.placed) {
-    const key = canonical(name);
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(name);
-  }
-  return groups;
-}
-
-function generateItems() {
-  const selected = [...ITEMS];
-  const pool = [...WRONG_ITEMS];
-  const amount = Math.min(WRONG_ITEMS_PER_ROUND, pool.length);
-
-  for (let i = 0; i < amount; i++) {
-    const index = Math.floor(Math.random() * pool.length);
-    selected.push(pool.splice(index, 1)[0]);
-  }
-
-  for (let i = selected.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [selected[i], selected[j]] = [selected[j], selected[i]];
-  }
-  state.shuffledItems = selected;
-}
-
-function renderItems() {
-  const query = el.search.value.trim().toLocaleLowerCase("ru");
-  el.inventory.replaceChildren();
-
-  for (const [name, emoji] of state.shuffledItems) {
-    if (query && !name.toLocaleLowerCase("ru").includes(query)) continue;
-
-    const card = document.createElement("div");
-    card.className = "item-card";
-    card.draggable = true;
-    card.dataset.name = name;
-    card.innerHTML = `<span class="emoji"></span><span class="item-name"></span>`;
-    card.querySelector(".emoji").textContent = emoji;
-    card.querySelector(".item-name").textContent = name;
-
-    card.addEventListener("dragstart", event => {
-      state.dragName = name;
-      event.dataTransfer.setData("text/plain", name);
-      event.dataTransfer.effectAllowed = "copy";
-    });
-
-    card.addEventListener("click", () => addItem(name));
-    el.inventory.append(card);
-  }
-}
-
-function reason(name) {
-  return REASONS[name] || "Этот предмет не входит в таблицу минимальной комплектации.";
+function findEquipment(name) {
+  return EQUIPMENT.find(item => item.name === name);
 }
 
 function startTimer() {
-  if (state.timerId !== null || state.startedAt !== null) return;
-
+  if (state.timerId !== null || state.startedAt !== null || state.finished) return;
   state.startedAt = Date.now();
-  state.timerId = window.setInterval(() => {
-    const elapsed = Math.floor((Date.now() - state.startedAt) / 1000);
-    state.secondsLeft = Math.max(0, TIME_LIMIT_SECONDS - elapsed);
+  state.timerId = setInterval(() => {
+    state.secondsLeft = Math.max(
+      0,
+      TIME_LIMIT_SECONDS - Math.floor((Date.now() - state.startedAt) / 1000)
+    );
     renderTimer();
-
-    if (state.secondsLeft <= 0) {
+    if (state.secondsLeft === 0) {
       stopTimer();
-      state.finishedByTime = true;
-      setStatus("Время вышло. Проверяем аптечку.");
+      state.finished = true;
+      setStatus("Время вышло. Выполняется проверка.");
       check(true);
     }
   }, 250);
 }
 
 function stopTimer() {
-  if (state.timerId !== null) {
-    window.clearInterval(state.timerId);
-    state.timerId = null;
-  }
+  if (state.timerId !== null) clearInterval(state.timerId);
+  state.timerId = null;
 }
 
 function renderTimer() {
-  const minutes = Math.floor(state.secondsLeft / 60);
-  const seconds = state.secondsLeft % 60;
-  timerDisplay.textContent =
-    `Время: ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  timerDisplay.style.color = state.secondsLeft <= 20 ? "#ff8c8c" : "#ffffff";
+  const m = Math.floor(state.secondsLeft / 60);
+  const s = state.secondsLeft % 60;
+  timerDisplay.textContent = `Время: ${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  timerDisplay.style.color = state.secondsLeft <= 20 ? "#d93025" : "";
 }
 
 function resetTimer() {
   stopTimer();
   state.startedAt = null;
   state.secondsLeft = TIME_LIMIT_SECONDS;
-  state.finishedByTime = false;
+  state.finished = false;
   renderTimer();
 }
 
-function addItem(name) {
-  if (state.finishedByTime) return;
+function addToBag(name) {
+  if (state.finished) return;
+  const item = findEquipment(name);
 
-  startTimer();
-  state.placed.push(name);
-  state.review = false;
-  renderBag();
-
-  if (state.hints) giveHint(name);
-}
-
-function addGroupItem(key, preferredName) {
-  addItem(preferredName || key);
-}
-
-function removeGroupItem(key) {
-  for (let i = state.placed.length - 1; i >= 0; i--) {
-    if (canonical(state.placed[i]) === key) {
-      state.placed.splice(i, 1);
-      break;
-    }
+  // Кейс/сумка — тара, а не изделие из таблицы минимальной комплектации.
+  if (item?.container) {
+    if ((state.stock.get(name) || 0) < 1 || state.containerSelected) return;
+    startTimer();
+    state.stock.set(name, state.stock.get(name) - 1);
+    state.containerSelected = true;
+    renderAll();
+    return;
   }
-  state.review = false;
-  renderBag();
+
+  const available = state.stock.get(name) || 0;
+  if (available > 0) {
+    startTimer();
+    state.stock.set(name, available - 1);
+  } else if (!item && !DISTRACTORS.some(entry => entry[0] === name)) {
+    return;
+  }
+
+  state.selected.push(name);
+  renderAll();
 }
 
-function giveHint(name) {
-  const key = canonical(name);
-  const current = counts();
+function returnFromBag(name) {
+  const index = state.selected.lastIndexOf(name);
+  if (index !== -1) {
+    state.selected.splice(index, 1);
+    if (findEquipment(name)) {
+      state.stock.set(name, (state.stock.get(name) || 0) + 1);
+    }
+  } else if (name === "Пластиковый кейс или сумка" && state.containerSelected) {
+    state.containerSelected = false;
+    state.stock.set(name, (state.stock.get(name) || 0) + 1);
+  }
+  renderAll();
+}
 
-  if (!Object.hasOwn(REQUIRED, key)) {
-    setStatus("Неподходящий предмет: " + name);
-  } else if (current.get(key) !== REQUIRED[key]) {
-    setStatus("Количество предмета пока неправильное.");
-  } else if (name !== key) {
-    setStatus("Допустимый вариант принят: " + name);
-  } else {
-    setStatus("Предмет добавлен правильно.");
+function renderInventory() {
+  const query = (el.search?.value || "").trim().toLocaleLowerCase("ru");
+  el.inventory.replaceChildren();
+
+  for (const item of EQUIPMENT) {
+    if (query && !item.name.toLocaleLowerCase("ru").includes(query)) continue;
+    const remaining = state.stock.get(item.name) || 0;
+    if (remaining <= 0) continue;
+
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.draggable = true;
+    card.dataset.name = item.name;
+    card.innerHTML = '<span class="emoji"></span><span class="item-name"></span><span class="quantity"></span>';
+    card.querySelector(".emoji").textContent = item.icon;
+    card.querySelector(".item-name").textContent = item.name;
+    card.querySelector(".quantity").textContent = `×${remaining}`;
+    card.addEventListener("click", () => addToBag(item.name));
+    card.addEventListener("dragstart", event => {
+      state.dragName = item.name;
+      event.dataTransfer.setData("text/plain", item.name);
+      event.dataTransfer.effectAllowed = "move";
+    });
+    el.inventory.append(card);
+  }
+
+  // Дополнительные неверные варианты для тренировочного задания.
+  for (const [name, icon] of DISTRACTORS) {
+    if (query && !name.toLocaleLowerCase("ru").includes(query)) continue;
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.draggable = true;
+    card.dataset.name = name;
+    card.innerHTML = '<span class="emoji"></span><span class="item-name"></span>';
+    card.querySelector(".emoji").textContent = icon;
+    card.querySelector(".item-name").textContent = name;
+    card.addEventListener("click", () => addToBag(name));
+    card.addEventListener("dragstart", event => {
+      state.dragName = name;
+      event.dataTransfer.setData("text/plain", name);
+      event.dataTransfer.effectAllowed = "copy";
+    });
+    el.inventory.append(card);
   }
 }
 
 function renderBag() {
   el.placed.replaceChildren();
-  const groups = getGroups();
 
-  for (const [key, names] of groups) {
-    const count = names.length;
-    const correct = Object.hasOwn(REQUIRED, key);
-    let color = correct
-      ? (count === REQUIRED[key] ? "good" : "warn")
-      : "bad";
+  if (state.containerSelected) {
+    const caseRow = document.createElement("div");
+    caseRow.className = "placed-row good";
+    const label = document.createElement("div");
+    label.className = "placed-name";
+    label.textContent = "🧰 Пластиковый кейс или сумка (тара)";
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "quantity-button minus";
+    remove.textContent = "−";
+    remove.title = "Вернуть кейс в список";
+    remove.addEventListener("click", () => returnFromBag("Пластиковый кейс или сумка"));
+    caseRow.append(label, remove);
+    el.placed.append(caseRow);
+  }
 
-    if (!state.hints && !state.review) color = "neutral";
+  const grouped = new Map();
+  for (const name of state.selected) {
+    grouped.set(name, (grouped.get(name) || 0) + 1);
+  }
 
+  for (const [name, count] of grouped) {
     const row = document.createElement("div");
-    row.className = `placed-row ${color}`;
+    row.className = "placed-row neutral";
 
     const info = document.createElement("div");
     info.className = "placed-info";
-
-    const name = document.createElement("div");
-    name.className = "placed-name";
-    name.textContent = names[0];
-    info.append(name);
-
-    if ((state.hints || state.review) && !correct) {
-      const explanation = document.createElement("div");
-      explanation.className = "placed-reason";
-      explanation.textContent = reason(names[0]);
-      info.append(explanation);
-    }
-
-    if (correct && count !== REQUIRED[key] && (state.hints || state.review)) {
-      const explanation = document.createElement("div");
-      explanation.className = "placed-reason";
-      explanation.style.color = "#795600";
-      explanation.textContent = `Нужно: ${REQUIRED[key]}. Сейчас: ${count}.`;
-      info.append(explanation);
-    }
+    const title = document.createElement("div");
+    title.className = "placed-name";
+    title.textContent = name;
+    info.append(title);
 
     const quantity = document.createElement("span");
     quantity.className = "quantity";
-    quantity.textContent = `${count}×`;
+    quantity.textContent = `×${count}`;
 
     const minus = document.createElement("button");
-    minus.className = "quantity-button minus";
     minus.type = "button";
+    minus.className = "quantity-button minus";
     minus.textContent = "−";
-    minus.setAttribute("aria-label", `Убрать один предмет: ${key}`);
-    minus.addEventListener("click", () => removeGroupItem(key));
+    minus.title = "Вернуть одну единицу в список";
+    minus.addEventListener("click", () => returnFromBag(name));
 
-    const plus = document.createElement("button");
-    plus.className = "quantity-button plus";
-    plus.type = "button";
-    plus.textContent = "+";
-    plus.setAttribute("aria-label", `Добавить предмет: ${key}`);
-    plus.addEventListener("click", () => addGroupItem(key, names[0]));
-
-    row.append(info, quantity, minus, plus);
+    row.append(info, quantity, minus);
     el.placed.append(row);
   }
 
-  el.counter.textContent = `Предметов: ${state.placed.length}`;
-  el.dropHint.classList.toggle("hidden", state.placed.length > 0);
+  const total = state.selected.length + (state.containerSelected ? 1 : 0);
+  el.counter.textContent = `В кейсе: ${total}`;
+  el.dropHint.classList.toggle("hidden", total > 0);
 }
 
-function setStatus(message) {
-  el.status.textContent = message;
+function renderAll() {
+  renderInventory();
+  renderBag();
 }
 
 function toggleMode() {
   state.hints = !state.hints;
-  state.placed = [];
-  state.review = false;
+  state.selected = [];
+  initStock();
   resetTimer();
 
   if (state.hints) {
     el.modeButton.textContent = "РЕЖИМ ПОДСКАЗОК";
     el.modeButton.classList.remove("exam");
-    setStatus("Режим подсказок. Аптечка очищена.");
+    setStatus("Режим подсказок включён. Содержимое кейса очищено.");
   } else {
     el.modeButton.textContent = "РЕЖИМ ЭКЗАМЕНА";
     el.modeButton.classList.add("exam");
     setStatus("Режим экзамена. На выполнение даётся 2 минуты 30 секунд.");
   }
-  renderBag();
+  renderAll();
+}
+
+function getActualCounts() {
+  const counts = new Map();
+  for (const name of state.selected) counts.set(name, (counts.get(name) || 0) + 1);
+  return counts;
 }
 
 function check(timeExpired = false) {
   stopTimer();
-
-  const current = counts();
-  const wrongCounts = new Map();
-
-  for (const name of state.placed) {
-    if (!Object.hasOwn(REQUIRED, canonical(name))) {
-      wrongCounts.set(name, (wrongCounts.get(name) || 0) + 1);
-    }
-  }
-
+  const actual = getActualCounts();
+  const wrong = [];
   let quantityErrors = 0;
-  const quantityDetails = [];
+  const rows = [];
 
   for (const [name, required] of Object.entries(REQUIRED)) {
-    const actual = current.get(name) || 0;
-    if (actual !== required) {
-      quantityErrors += 1;
-      quantityDetails.push({
-        name,
-        required,
-        actual,
-        difference: actual - required
-      });
-    }
+    const count = actual.get(name) || 0;
+    const ok = count === required;
+    if (!ok) quantityErrors++;
+    rows.push({ name, required, count, ok });
   }
 
-  const wrongItemCount = [...wrongCounts.values()]
-    .reduce((sum, value) => sum + value, 0);
-
-  const notAttempted = state.placed.length === 0;
-  const timePenalty = (timeExpired || state.finishedByTime) ? 20 : 0;
-  const nonAttemptPenalty = notAttempted ? 20 : 0;
-
-  let penalty = wrongItemCount + quantityErrors + timePenalty + nonAttemptPenalty;
-  penalty = Math.min(MAX_SCORE, penalty);
-  const score = Math.max(0, MAX_SCORE - penalty);
-
-  showResults(score, current, wrongCounts, quantityDetails, {
-    wrongItemCount,
-    quantityErrors,
-    timePenalty,
-    nonAttemptPenalty,
-    penalty
+  // Проверка альтернативного предмета для пункта 12.
+  const markerCount = MARKER_ALTERNATIVES.reduce(
+    (sum, name) => sum + (actual.get(name) || 0), 0
+  );
+  const markerOk = markerCount === 1;
+  if (!markerOk) quantityErrors++;
+  rows.push({
+    name: "Маркер чёрный (синий) или карандаш",
+    required: 1,
+    count: markerCount,
+    ok: markerOk
   });
 
-  state.placed = [];
-  state.review = false;
+  for (const [name, count] of actual) {
+    const valid = Object.hasOwn(REQUIRED, name) || MARKER_ALTERNATIVES.includes(name);
+    if (!valid) wrong.push({ name, count });
+  }
+
+  // Кейс/сумка необходимы как тара по описанию оборудования, но не входят в 12 строк таблицы оценки.
+  const wrongItemCount = wrong.reduce((sum, item) => sum + item.count, 0);
+  const timePenalty = timeExpired ? 20 : 0;
+  const noAttemptPenalty = state.selected.length === 0 ? 20 : 0;
+  const penalty = Math.min(
+    MAX_SCORE,
+    wrongItemCount + quantityErrors + timePenalty + noAttemptPenalty
+  );
+  const score = Math.max(0, MAX_SCORE - penalty);
+
+  showResults(score, rows, wrong, {
+    wrongItemCount, quantityErrors, timePenalty, noAttemptPenalty, penalty
+  });
+
+  state.selected = [];
+  initStock();
   resetTimer();
-  renderBag();
-  setStatus("Проверка завершена. Аптечка очищена.");
+  renderAll();
+  setStatus("Проверка завершена. Можно начать новую попытку.");
 }
 
-function showResults(score, current, wrongCounts, quantityDetails, penalties) {
+function showResults(score, rows, wrong, penalties) {
   el.resultTitle.textContent = `РЕЗУЛЬТАТ: ${score} ИЗ 20 БАЛЛОВ`;
 
-  const scoreLine = document.createElement("div");
-  scoreLine.className = "score";
-  scoreLine.textContent = `${score} / 20 баллов`;
-
   const summary = document.createElement("p");
-  summary.style.textAlign = "center";
   summary.textContent =
-    `Штраф: ${penalties.penalty} баллов. ` +
-    `Неверные предметы: ${penalties.wrongItemCount}; ` +
-    `неверные количества: ${penalties.quantityErrors}; ` +
-    `время: ${penalties.timePenalty}; ` +
-    `задание не выполнялось: ${penalties.nonAttemptPenalty}.`;
+    `Штраф: ${penalties.penalty}. Неверные предметы: ${penalties.wrongItemCount}; ` +
+    `неверные количества: ${penalties.quantityErrors}; превышение времени: ${penalties.timePenalty}; ` +
+    `задание не выполнялось: ${penalties.noAttemptPenalty}.`;
 
   const table = document.createElement("table");
   table.className = "result-table";
-
   const thead = document.createElement("thead");
-  thead.innerHTML =
-    "<tr><th>Предмет</th><th>Нужно</th><th>Положено</th><th>Результат</th></tr>";
-  table.append(thead);
-
+  thead.innerHTML = "<tr><th>Предмет</th><th>Нужно</th><th>Положено</th><th>Результат</th></tr>";
   const tbody = document.createElement("tbody");
 
-  for (const [name, required] of Object.entries(REQUIRED)) {
-    const actual = current.get(name) || 0;
-    const correct = actual === required;
+  for (const item of rows) {
     const tr = document.createElement("tr");
-    tr.className = correct ? "good-row" : "bad-row";
-
-    let status = "ПРАВИЛЬНО";
-    if (actual < required) status = `НЕ ХВАТАЕТ ${required - actual}`;
-    if (actual > required) status = `ЛИШНИХ ${actual - required}`;
-
-    [name, required, actual, status].forEach(value => {
+    tr.className = item.ok ? "good-row" : "bad-row";
+    const status = item.ok
+      ? "ПРАВИЛЬНО"
+      : item.count < item.required
+        ? `НЕ ХВАТАЕТ ${item.required - item.count}`
+        : `ЛИШНИХ ${item.count - item.required}`;
+    for (const value of [item.name, item.required, item.count, status]) {
       const td = document.createElement("td");
       td.textContent = value;
       tr.append(td);
-    });
+    }
     tbody.append(tr);
   }
 
-  for (const [name, amount] of wrongCounts) {
+  for (const item of wrong) {
     const tr = document.createElement("tr");
     tr.className = "bad-row";
-    [name, "—", amount, reason(name)].forEach(value => {
+    for (const value of [item.name, "—", item.count, "Неверный предмет"]) {
       const td = document.createElement("td");
       td.textContent = value;
       tr.append(td);
-    });
+    }
     tbody.append(tr);
   }
 
-  table.append(tbody);
-
-  const details = document.createElement("p");
-  details.style.fontSize = "12px";
-  details.textContent = quantityDetails.length
-    ? "Каждое неверное количество даёт 1 штрафной балл независимо от величины недостачи или избытка."
-    : "Все количества соответствуют таблице.";
-
-  el.resultBody.replaceChildren(scoreLine, summary, table, details);
+  table.append(thead, tbody);
+  el.resultBody.replaceChildren(summary, table);
   el.resultsDialog.showModal();
 }
 
 function reset() {
-  state.placed = [];
-  state.review = false;
+  initStock();
   resetTimer();
-  generateItems();
-  el.search.value = "";
-  renderItems();
-  renderBag();
-  setStatus("Аптечка очищена. Список предметов перемешан. Таймер начнётся при добавлении первого предмета.");
+  if (el.search) el.search.value = "";
+  renderAll();
+  setStatus("Список оборудования восстановлен. Таймер начнётся после первого переноса.");
 }
 
-el.search.addEventListener("input", renderItems);
+el.search?.addEventListener("input", renderInventory);
 el.modeButton.addEventListener("click", toggleMode);
 el.checkButton.addEventListener("click", () => check(false));
 
-el.resetButton.addEventListener("click", () => {
-  el.confirmDialog.showModal();
-});
-
-el.cancelReset.addEventListener("click", () => {
-  el.confirmDialog.close();
-});
-
+el.resetButton.addEventListener("click", () => el.confirmDialog.showModal());
+el.cancelReset.addEventListener("click", () => el.confirmDialog.close());
 el.confirmReset.addEventListener("click", () => {
   el.confirmDialog.close();
   reset();
@@ -581,24 +475,18 @@ el.closeResultsBottom.addEventListener("click", () => el.resultsDialog.close());
 el.bag.addEventListener("dragover", event => {
   event.preventDefault();
   el.bag.classList.add("drag-over");
-  event.dataTransfer.dropEffect = "copy";
 });
-
 el.bag.addEventListener("dragleave", event => {
-  if (!el.bag.contains(event.relatedTarget)) {
-    el.bag.classList.remove("drag-over");
-  }
+  if (!el.bag.contains(event.relatedTarget)) el.bag.classList.remove("drag-over");
 });
-
 el.bag.addEventListener("drop", event => {
   event.preventDefault();
   el.bag.classList.remove("drag-over");
   const name = event.dataTransfer.getData("text/plain") || state.dragName;
-  if (name) addItem(name);
+  if (name) addToBag(name);
   state.dragName = null;
 });
 
-generateItems();
-renderItems();
-renderBag();
+initStock();
+renderAll();
 renderTimer();
